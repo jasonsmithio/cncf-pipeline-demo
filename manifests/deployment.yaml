@@ -1,0 +1,23 @@
+# This file configures the hello-world app which serves public web traffic.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld-gke
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+      - name: hello-app
+        image: gcr.io/${PROJECT_ID}/helloworld-gke:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: PORT
+            value: "8080"

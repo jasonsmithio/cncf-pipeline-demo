@@ -1,0 +1,39 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-test-deploy-app
+spec:
+  resources:
+  - name: git
+    type: git
+  - name: image
+    type: image
+  tasks:
+    # The names of tasks in this pipeline
+  - name: build-app
+    taskRef:
+      # The name of the task
+      name: build-test-app-task
+    resources:
+      inputs:
+      - name: git
+        resource: git
+      outputs:
+      - name: image
+        resource: image
+  - name: deploy-app
+    taskRef:
+      # The name of the task
+      name: deploy-test-app-task
+    resources:
+      inputs:
+      - name: image
+        resource: image
+  - name: bind-iam-app
+    taskRef:
+      # The name of the task
+      name: bind-iam-app-task
+    resources:
+      inputs:
+      - name: image
+        resource: image

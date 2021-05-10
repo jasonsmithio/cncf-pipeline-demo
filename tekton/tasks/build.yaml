@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-test-app-task
+spec:
+  params:
+    - name: dockerfilePath
+      type: string
+      description: The path to the dockerfile to build
+      default: /workspace/git/app/Dockerfile
+    - name: srcPath
+      type: string
+      description: The path to the source code
+      default: /workspace/git/app
+    - name: kanikoContextPath
+      type: string
+      description: Kaniko build context
+      default: /workspace/git/app
+  resources:
+    inputs:
+      - name: git
+        type: git
+    outputs:
+      - name: image
+        type: image
+  steps:
+  - name: pytest
+    image: python
+    command:
+      - /bin/bash
+      - -c
+    args: ["cd", "(params.srcPath)", "&&", "pip3", "install", "-r", "requirements.txt", "&&", "pip3", "install", "r", "dev_requirements.txt", "&&", "pytest", "."]
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor
+    env:
+      - name: DOCKER_CONFIG
+        value: /builder/home/.docker/
+    command:
+      - /kaniko/executor
+    args: ["--dockerfile=$(params.dockerfilePath)", "--destination=$(resources.outputs.image.url)", "--context=$(params.kanikoContextPath)"]
