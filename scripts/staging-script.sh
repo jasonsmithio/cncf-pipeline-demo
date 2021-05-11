@@ -61,6 +61,33 @@ gke_setup () {
   echo "Waiting for cluster bring up..."
   sleep 45
 
+    # Connect to cluster
+  set +x; echo "Connect to cluster.."
+  set -x;
+  gcloud container clusters get-credentials gitlab-cluster --zone ${ZONE} --project ${PROJECT_ID}
+  set +x; echo
+
+
+  #export PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo)
+
+
+
+  #Install Nginx Ingress
+  set +x; echo "Install NGINX Ingress.."
+  set -x
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.45.0/deploy/static/provider/cloud/deploy.yaml
+  set +x; echo
+
+
+
+  set +x; echo "Set up bindings.."
+  set -x
+  kubectl create clusterrolebinding cluster-admin-binding \
+  --clusterrole=cluster-admin \
+  --user=$(gcloud config get-value core/account)
+  #Give your compute service account IAM access to Secret Manager
+  gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com --role roles/secretmanager.admin
+
 }
 
 
