@@ -5,14 +5,20 @@ metadata:
   name: deploy-test-app-task
 spec:
   params:
+    - name: PathToKustomize
+      description: path to the kustomize directory
+      default: /workspace/git/manifests
   resources:
     inputs:
     - name: image
       type: image
+    - name: git
+      type: git
       # The output resource(s) of the task, such as an image built from the source code
   steps:
-    - name: run
+    - name: kubectl
       image: gcr.io/cloud-builders/kubectl
       args:
-      - apply
-      - -k
+      - "apply"
+      - "-k"
+      - "$(params.PathToKustomize)"

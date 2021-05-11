@@ -1,0 +1,80 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: github-listener-interceptor
+spec:
+  triggers:
+    - name: github-listener
+      interceptors:
+        - ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: secretToken
+            - name: "eventTypes"
+              value: ["pull"]
+      bindings:
+        - ref: github-pr-binding
+      template:
+        ref: github-template
+  resources:
+    kubernetesResource:
+      spec:
+        template:
+          spec:
+            serviceAccountName: tekton-triggers-example-sa
+            containers:
+              - resources:
+                  requests:
+                    memory: "64Mi"
+                    cpu: "250m"
+                  limits:
+                    memory: "128Mi"
+                    cpu: "500m"
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: github-pr-binding
+spec:
+  params:
+    - name: gitrevision
+      value: $(body.pull_request.head.sha)
+    - name: gitrepositoryurl
+      value: $(body.repository.clone_url)
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: github-template
+spec:
+  params:
+    - name: message
+      description: The message to print
+      default: This is the default message
+    - name: contenttype
+      description: The Content-Type of the event
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1alpha1
+      kind: PipelineRun
+      metadata:
+        generateName: github-run-
+      spec:
+        pipelineRef:
+          name: build-test-deploy-app
+        params:
+        - name: message
+          value: $(params.message)
+        - name: contenttype
+          value: $(params.contenttype)
+      resources:
+      - name: helloworld-gke-github
+        resourceRef:
+          name: helloworld-gke-github
+      - name: helloworld-gke-image
+        resourceRef:
+          name: helloworld-gke-image
