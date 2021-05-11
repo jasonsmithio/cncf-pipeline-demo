@@ -29,11 +29,3 @@ spec:
       inputs:
       - name: image
         resource: image
-  - name: bind-iam-app
-    taskRef:
-      # The name of the task
-      name: bind-iam-app-task
-    resources:
-      inputs:
-      - name: image
-        resource: image

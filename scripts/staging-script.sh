@@ -48,7 +48,7 @@ gke_setup () {
 
   set +x; echo "Creating gitlab cluster..."
   set -x
-  gcloud container clusters create gitlab-cluster \
+  gcloud container clusters create tekton-cluster \
       --zone ${ZONE} \
       --release-channel=regular --cluster-version 1.18 \
       --machine-type n1-standard-4 \
@@ -171,9 +171,6 @@ tekton () {
     set -x
     kubectl apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.16.0/tekton-dashboard-release.yaml
     set +x; echo
-
-    sed -i "s/TEKTON_DOMAIN/${TEKTON_DOMAIN}/g" tekton/gitlab-base/gitlab-ingress.yaml
-    sed -i "s/TEKTON_DOMAIN/${TEKTON_DOMAIN}/g" tekton/resources/dashboard-ing.yaml
 
     sleep 30
 
